@@ -1,5 +1,5 @@
 #include <curses.h>
-#include <ncurses.h>
+#include <cstdlib>
 
 // Area dimension size
 #define ROW 17
@@ -20,9 +20,15 @@ void setup();       // Initializes the setup of the game
 void print_area();  // Prints the area of the game
 void read_input();  // Reads the input from the user
 void move_snake();  // Changes the x-y coordinates of the snake one-by-one
+void handle_food();  // Handles the food generation of the snake
 
 // Area array
 char area[ROW][COLUMN] = {};
+
+// Food array that stores 2 values (x-y coordinates)
+int food[2] = {3, 3};
+
+int game_over;
 
 int main()
 {
@@ -34,11 +40,14 @@ int main()
 
   setup();
 
-  while ((char) inp != 'q')
+  while ((char) inp != 'q' || game_over)
   {
-    read_input();
     print_area();
+    for (int i = 0; i < snake.size; i++)
+      printw("%d %d\n", snake.position[i][0], snake.position[i][1]);
+    read_input();
     move_snake();
+    handle_food();
 
     napms(500);
   }
@@ -52,6 +61,8 @@ int main()
 void setup()
 {
   printw("(WASD) movement keys. (q) to quit.");
+
+  game_over = 0;
 
   // Initial snake position
   snake.position[0][0] = 1;
@@ -101,7 +112,9 @@ void print_area()
     for (int j = 0; j < COLUMN; j++)
     {
       if (in_arr(i, j))
-        printw("*");
+        printw("0");
+      else if (food[0] == i && food[1] == j)
+        printw("o");
       else
         printw("%c", area[i][j]);
     }
@@ -140,18 +153,42 @@ void read_input()
 
 void move_snake()
 {
-  // int prev[2] = {snake.position[0][0], snake.position[0][1]};
+  int head[2] = {snake.position[0][0], snake.position[0][1]};
 
   snake.position[0][0] += snake.step[0];
   snake.position[0][1] += snake.step[1];
 
   printw("%d %d", snake.position[0][0], snake.position[0][1]);
 
-  // for (int i = 1; i < snake.size; i++)
-  // {
-    // int subt[2] = {snake.position[i][0] - prev[0], snake.position[i][1] - prev[1]};
-    // snake.position[i][0] += subt[0];
-    // snake.position[i][1] += subt[1];
-  // }
+  for (int i = 1; i < snake.size; i++)
+  {
+    int subt[2] = {snake.position[i][0] - head[0], snake.position[i][1] - head[1]};
+    snake.position[i][0] += subt[0];
+    snake.position[i][1] += subt[1];
+  }
 }
 
+void handle_food()
+{
+  // If food still doesn't have a value for the coordinates
+  // Generate food
+  if (!(food[0]) && !(food[1]))
+  {
+    int x = rand() % 15 + 1;
+    int y = rand() % 50 + 1;
+
+    food[0] = x;
+    food[1] = y;
+  }
+
+  if (snake.position[0][0] == food[0] && snake.position[0][1] == food[1])
+  {
+    snake.size++;
+
+    food[0] = 0;
+    food[1] = 0;
+
+    snake.position[snake.size][0] = snake.position[0][0] + -(snake.step[0]);
+    snake.position[snake.size][1] = snake.position[0][1] + -(snake.step[1]);
+  }
+}
