@@ -153,18 +153,20 @@ void read_input()
 
 void move_snake()
 {
-  int head[2] = {snake.position[0][0], snake.position[0][1]};
+  int prev[2] = {snake.position[0][0], snake.position[0][1]};
 
   snake.position[0][0] += snake.step[0];
   snake.position[0][1] += snake.step[1];
 
-  printw("%d %d", snake.position[0][0], snake.position[0][1]);
-
   for (int i = 1; i < snake.size; i++)
   {
-    int subt[2] = {snake.position[i][0] - head[0], snake.position[i][1] - head[1]};
-    snake.position[i][0] += subt[0];
-    snake.position[i][1] += subt[1];
+    int tmp[2] = {snake.position[i][0], snake.position[i][1]};
+
+    snake.position[i][0] = prev[0];
+    snake.position[i][1] = prev[1];
+
+    prev[0] = tmp[0];
+    prev[1] = tmp[1];
   }
 }
 
@@ -188,7 +190,7 @@ void handle_food()
     food[0] = 0;
     food[1] = 0;
 
-    snake.position[snake.size][0] = snake.position[0][0] + -(snake.step[0]);
-    snake.position[snake.size][1] = snake.position[0][1] + -(snake.step[1]);
+    snake.position[snake.size - 1][0] = snake.position[snake.size - 2][0] + -(snake.step[0]);
+    snake.position[snake.size - 1][1] = snake.position[snake.size - 2][1] + -(snake.step[1]);
   }
 }
